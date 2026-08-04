@@ -1,0 +1,64 @@
+package com.academy.cacheasside.config;
+
+import com.academy.cacheasside.entity.Product;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.math.BigDecimal;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
+@Testcontainers
+class CacheConfigTest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+
+    @Container
+    @ServiceConnection
+    static GenericContainer<?> redis = new GenericContainer<>("redis:7").withExposedPorts(6379);
+
+    @Autowired
+    @Qualifier("redisCacheManager")
+    private CacheManager redisCacheManager;
+
+    @Autowired
+    @Qualifier("caffeineCacheManager")
+    private CacheManager caffeineCacheManager;
+
+    @Test
+    void shouldRoundTripProductThroughRedisCache() {
+        Cache products = redisCacheManager.getCache("products");
+        Product product = new Product(1L, "Keyboard", "Mechanical keyboard", new BigDecimal("250.00"));
+
+        products.put(1L, product);
+        Product cached = products.get(1L, Product.class);
+
+        assertThat(cached).isNotNull();
+        assertThat(cached.getName()).isEqualTo("Keyboard");
+        assertThat(cached.getPrice()).isEqualByComparingTo(new BigDecimal("250.00"));
+    }
+
+    @Test
+    void shouldRoundTripValueThroughCaffeineCache() {
+        Cache categories = caffeineCacheManager.getCache("categories");
+        Product standIn = new Product(2L, "Electronics", "Stand-in before Category exists", new BigDecimal("0.00"));
+
+        categories.put(2L, standIn);
+        Product cached = categories.get(2L, Product.class);
+
+        assertThat(cached).isNotNull();
+        assertThat(cached.getName()).isEqualTo("Electronics");
+    }
+}

@@ -1,5 +1,6 @@
 package com.academy.cacheasside.config;
 
+import com.academy.cacheasside.entity.Product;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -23,7 +24,9 @@ public class CacheConfig {
     @Primary
     public CacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofSeconds(60));
+                .entryTtl(Duration.ofSeconds(60))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair
+                        .fromSerializer(new JacksonJsonRedisSerializer<>(Product.class)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(configuration)
