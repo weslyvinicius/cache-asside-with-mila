@@ -1,32 +1,25 @@
 package com.academy.cacheasside.config;
 
+import com.academy.cacheasside.AbstractIntegrationTest;
 import com.academy.cacheasside.entity.Product;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
-@Testcontainers
-class CacheConfigTest {
+class CacheConfigTest extends AbstractIntegrationTest {
 
-    @Container
-    @ServiceConnection
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
 
-    @Container
-    @ServiceConnection
     static GenericContainer<?> redis = new GenericContainer<>("redis:7").withExposedPorts(6379);
 
     @Autowired
