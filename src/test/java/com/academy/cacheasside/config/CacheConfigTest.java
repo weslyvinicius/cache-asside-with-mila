@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.math.BigDecimal;
 
@@ -17,10 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
 class CacheConfigTest extends AbstractIntegrationTest {
-
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
-
-    static GenericContainer<?> redis = new GenericContainer<>("redis:7").withExposedPorts(6379);
 
     @Autowired
     @Qualifier("redisCacheManager")
