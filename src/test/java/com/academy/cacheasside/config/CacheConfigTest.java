@@ -27,6 +27,8 @@ class CacheConfigTest extends AbstractIntegrationTest {
     @Test
     void shouldRoundTripProductThroughRedisCache() {
         Cache products = redisCacheManager.getCache("products");
+        assertThat(products).isNotNull();
+
         Product product = new Product(1L, "Keyboard", "Mechanical keyboard", new BigDecimal("250.00"));
 
         products.put(1L, product);
@@ -40,6 +42,8 @@ class CacheConfigTest extends AbstractIntegrationTest {
     @Test
     void shouldRoundTripValueThroughCaffeineCache() {
         Cache categories = caffeineCacheManager.getCache("categories");
+        assertThat(categories).isNotNull();
+
         Product standIn = new Product(2L, "Electronics", "Stand-in before Category exists", new BigDecimal("0.00"));
 
         categories.put(2L, standIn);

@@ -32,7 +32,9 @@ public class ProductService {
     @CachePut(cacheNames = "products", cacheManager = "redisCacheManager", key = "#result.id")
     public Product create(ProductRequest request) {
         Product product = new Product(null, request.name(), request.description(), request.price());
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+        log.info("Product {} created", saved.getId());
+        return saved;
     }
 
     @CachePut(cacheNames = "products", cacheManager = "redisCacheManager", key = "#id")
@@ -45,12 +47,13 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    @CacheEvict(cacheNames = "products", cacheManager = "redisCacheManager", key = "#id")
+    @CacheEvict(cacheNames = "products", cacheManager = "redisCacheManager", key = "#id", beforeInvocation = true)
     public void delete(Long id) {
         if (!productRepository.existsById(id)) {
             throw new ProductNotFoundException(id);
         }
         productRepository.deleteById(id);
+        log.info("Product {} deleted", id);
     }
 
     public List<Product> findAll() {

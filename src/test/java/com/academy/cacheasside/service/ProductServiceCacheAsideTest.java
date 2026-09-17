@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.math.BigDecimal;
@@ -31,10 +33,17 @@ class ProductServiceCacheAsideTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     private ProductRepository productRepository;
 
+    @Autowired
+    private CacheManager redisCacheManager;
+
     private ListAppender<ILoggingEvent> logAppender;
 
     @BeforeEach
     void attachLogAppender() {
+        Cache products = redisCacheManager.getCache("products");
+        assertThat(products).isNotNull();
+        products.clear();
+
         Logger serviceLogger = (Logger) LoggerFactory.getLogger(ProductService.class);
         logAppender = new ListAppender<>();
         logAppender.start();
@@ -45,6 +54,7 @@ class ProductServiceCacheAsideTest extends AbstractIntegrationTest {
     void detachLogAppender() {
         Logger serviceLogger = (Logger) LoggerFactory.getLogger(ProductService.class);
         serviceLogger.detachAppender(logAppender);
+        logAppender.stop();
     }
 
     @Test
