@@ -1,5 +1,6 @@
 package com.academy.cacheasside.config;
 
+import com.academy.cacheasside.entity.Product;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -10,6 +11,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
 
@@ -20,11 +23,22 @@ public class CacheConfig {
     @Bean
     @Primary
     public CacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofSeconds(60));
+
+        RedisCacheConfiguration defaultConfiguration =
+                RedisCacheConfiguration.defaultCacheConfig()
+                        .entryTtl(Duration.ofSeconds(60));
+
+        RedisCacheConfiguration productConfiguration =
+                defaultConfiguration.serializeValuesWith(
+                        RedisSerializationContext.SerializationPair
+                                .fromSerializer(
+                                        new JacksonJsonRedisSerializer<>(Product.class)
+                                )
+                );
 
         return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(configuration)
+                .cacheDefaults(defaultConfiguration)
+                .withCacheConfiguration("products", productConfiguration)
                 .build();
     }
 
